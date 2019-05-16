@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <title>Index</title>
+
+        <style>
+            table {
+              font-family: arial, sans-serif;
+              border-collapse: collapse;
+              width: 100%;
+            }
+            
+            td, th {
+              border: 1px solid #dddddd;
+              text-align: left;
+              padding: 8px;
+            }
+            
+            tr:nth-child(even) {
+              background-color: #dddddd;
+            }
+        </style>
+
+    </head>
+    <body>
+
+        <div id="root"></div>
+
+        <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+        <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-router/2.0.0/ReactRouter.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.5.2/redux.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.4.5/react-redux.js" type="text/javascript"></script>
+
+        <script type="text/babel">
+
+            var { Router, Route, IndexRoute, Link } = ReactRouter;
+            var { createStore } = Redux;
+
+            const users = [ 
+                        {name: "User1Name", lastname: "User1Lastname", countJobDays: 1, daySalary: 10},
+                        {name: "User2Name", lastname: "User2Lastname", countJobDays: 2, daySalary: 20},
+                        {name: "User3Name", lastname: "User3Lastname", countJobDays: 3, daySalary: 30}
+            ];
+
+            const initialState = {
+                users: []
+            };
+            
+            // Redux
+
+            var userReducer = function(state = initialState, action) {
+
+                if (action.type == 'ADD_USER') {
+                    return Object.assign({}, state, {
+                        users: state.users.concat([action.user])
+                    });
+                }
+
+                return state;
+            }
+
+            var store = Redux.createStore(userReducer);
+
+            // End Redux
+
+            class UsersList extends React.Component {
+
+                constructor() {
+                    super();
+                    this.state = {users: users};
+                }
+
+                render() {
+
+                    const list = this.state.users.map((user, index) => {
+                        return <tr>
+                            <td>{user.name}</td>
+                            <td>{user.lastname}</td>
+                            <td><input type="text" value={user.countJobDays} onChange={(e) => this.handleChangeCount(e.target.value, user)} /></td>
+                            <td><input type="text" value={user.daySalary} onChange={(e) => this.handleChangeSalary(e.target.value, user)} /></td>
+                            <td>{user.daySalary * user.countJobDays}</td>
+                        </tr>;
+                    });
+
+                    return <table>
+                        {list}
+                    </table>
+                }
+
+                componentDidMount() {                    
+                    this.unsubscribe = store.subscribe(this.handleChange);    
+                }
+
+                componentWillUnmount() {
+                    this.unsubscribe();
+                }
+
+                handleChangeCount = (value, user) => {
+
+                    this.setState(state => {
+                        const list = state.users.map((item) => {
+                            if (item.name == user.name) {
+                                return item.countJobDays = value;
+                            }
+                        });
+
+                        return {
+                            list
+                        };
+                    });
+                }
+                                
+                handleChangeSalary = (value, user) => {
+
+                    this.setState(state => {
+                        const list = state.users.map((item) => {
+                            if (item.name == user.name) {
+                                return item.daySalary = value;
+                            }
+                        });
+
+                        return {
+                            list
+                        };
+                    });
+                }    
+
+                handleChange = () => {
+
+                    const state = store.getState();
+
+                    this.setState({ 
+                        users: this.state.users.concat(state.users) 
+                    });
+                }        
+                
+            }
+            
+            ReactDOM.render(
+                <UsersList users={users} />,
+                document.getElementById("root")
+            );
+
+            store.dispatch({
+                type: 'ADD_USER',
+                user: { name: "User4Name", lastname: "User4Lastname", countJobDays: 4, daySalary: 40 },
+                field1: true 
+            });
+
+        </script>
+    </body>
+</html>
